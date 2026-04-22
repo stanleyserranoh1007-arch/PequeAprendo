@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PequeAprendo - ¡Diversión Total!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: #fff9c4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #game-container {
+            background: white;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 95%;
+            max-width: 650px;
+            border: 8px solid #81d4fa;
+        }
+
+        .hidden { display: none; }
+
+        h1 { color: #d84315; font-size: 2.2rem; margin-bottom: 15px; }
+        h2 { color: #2e7d32; margin-bottom: 10px; }
+
+        .btn {
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            margin: 8px;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px #999;
+        }
+
+        .btn:active { box-shadow: 0 2px #666; transform: translateY(2px); }
+
+        .btn-blue { background-color: #03a9f4; }
+        .btn-orange { background-color: #ff9800; }
+        .btn-purple { background-color: #9c27b0; }
+        .btn-green { background-color: #4caf50; }
+        .btn-back { background-color: #78909c; margin-top: 20px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        #display-area, #quiz-area {
+            margin: 15px 0;
+            padding: 20px;
+            background-color: #fafafa;
+            border: 4px dashed #90caf9;
+            border-radius: 20px;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            
+            justify-content: center;
+        }
+
+        .img-card {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: 4px solid #eee;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .img-card:hover { transform: scale(1.05); border-color: #ffeb3b; }
+
+        .big-text {
+            font-size: 4.5rem;
+            font-weight: bold;
+            color: #c2185b;
+            margin: 10px 0;
+        }
+
+        #quiz-options {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <!-- MENÚ PRINCIPAL -->
+    <div id="menu-main">
+        <h1>🎈 PequeAprendo</h1>
+        <button class="btn btn-orange" onclick="showCategory('vocales')">🅰️ Vocales</button>
+        <button class="btn btn-blue" onclick="showCategory('sílabas')">🧩 Sílabas</button>
+       
+    </div>
+
+    <!-- SUBMENÚ SÍLABAS -->
+    <div id="menu-syllables" class="hidden">
+        <h2>Elige una letra</h2>
+        <button class="btn btn-green" onclick="loadLearn('M')">Letra M</button>
+        <button class="btn btn-green" onclick="loadLearn('L')">Letra L</button>
+        <br>
+        <button class="btn btn-back" onclick="goHome()">🏠 Volver</button>
+    </div>
+
+    <!-- PANTALLA DE APRENDIZAJE -->
+    <div id="learn-screen" class="hidden">
+        <h2 id="learn-title">Aprendiendo</h2>
+        <div id="display-area">
+            <div id="placeholder-msg">¡Toca un botón abajo!</div>
+            <div id="learn-content" class="hidden">
+                <img id="learn-img" src="" alt="Imagen" class="img-card">
+                <div id="learn-text" class="big-text"></div>
+            </div>
+        </div>
+        <div id="learn-buttons" class="grid"></div>
+        <button class="btn btn-back" onclick="goBack()">🔙 Atrás</button>
+    </div>
+
+    <!-- PANTALLA DE JUEGO (ADIVINA) -->
+    <div id="quiz-screen" class="hidden">
+        <h2>👂 Escucha y Adivina</h2>
+        <div id="quiz-area">
+            <p id="quiz-instruction">Presiona el botón para escuchar</p>
+            <button class="btn btn-purple" onclick="repeatQuizSound()">🔊 Repetir Sonido</button>
+            <div id="quiz-options"></div>
+        </div>
+        <p id="quiz-feedback" style="font-weight: bold; font-size: 1.2rem;"></p>
+        <button class="btn btn-back" onclick="goHome()">🏠 Salir al Menú</button>
+    </div>
+</div>
+
+<script>
+    const gameData = {
+        'vocales': [
+            { id: 'A', img: 'algodon.png', word: 'Avión' },
+            { id: 'E', img: 'estrella.png', word: 'Elefante' },
+            { id: 'I', img: 'iguana.png', word: 'Iglesia' },
+            { id: 'O', img: 'ojo.png', word: 'Oso' },
+            { id: 'U', img: 'uva.png', word: 'Uvas' }
+        ],
+        'M': [
+            { id: 'Ma', img: 'manzana.png', word: 'Manzana' },
+            { id: 'Me', img: 'mesa.png', word: 'Mesa' },
+            { id: 'Mi', img: 'mision.png', word: 'Mimo' },
+            { id: 'Mo', img: 'mochila.png', word: 'Mochila' },
+            { id: 'Mu', img: 'muñeca.png', word: 'Muñeca' }
+        ],
+        'L': [
+            { id: 'La', img: 'lapiz.png', word: 'Lápiz' },
+            { id: 'Le', img: 'leche.png', word: 'Leche' },
+            { id: 'Li', img: 'limones.png', word: 'Limón' },
+            { id: 'Lo', img: 'loro.webp', word: 'loro' },
+            { id: 'Lu', img: 'luna.png', word: 'Luna' }
+        ]
+    };
+
+    let currentQuizItem = null;
+    let currentScreen = 'menu-main';
+
+    // NAVEGACIÓN
+    function showCategory(cat) {
+        if (cat === 'vocales') loadLearn('vocales');
+        else switchScreen('menu-syllables');
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('#game-container > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+        currentScreen = id;
+    }
+
+    function goHome() { switchScreen('menu-main'); }
+    function goBack() {
+        if (document.getElementById('learn-title').innerText.includes('Sílabas')) switchScreen('menu-syllables');
+        else goHome();
+    }
+
+    // MODO APRENDIZAJE
+    function loadLearn(key) {
+        switchScreen('learn-screen');
+        const container = document.getElementById('learn-buttons');
+        container.innerHTML = '';
+        document.getElementById('learn-title').innerText = key === 'vocales' ? 'Las Vocales' : 'Sílabas con ' + key;
+        document.getElementById('learn-content').classList.add('hidden');
+        document.getElementById('placeholder-msg').classList.remove('hidden');
+
+        gameData[key].forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-orange';
+            btn.innerText = item.id;
+            btn.onclick = () => {
+                document.getElementById('placeholder-msg').classList.add('hidden');
+                document.getElementById('learn-content').classList.remove('hidden');
+                document.getElementById('learn-img').src = item.img;
+                document.getElementById('learn-text').innerText = item.id;
+                speak(item.id + "... " + item.word);
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    // MODO JUEGO (QUIZ)
+    function startQuiz() {
+        switchScreen('quiz-screen');
+        document.getElementById('quiz-feedback').innerText = '';
+        
+        // Mezclamos todos los datos posibles
+        const allItems = [...gameData.vocales, ...gameData.M, ...gameData.L];
+        currentQuizItem = allItems[Math.floor(Math.random() * allItems.length)];
+
+        // Elegir 2 opciones incorrectas aleatorias
+        let options = [currentQuizItem];
+        while(options.length < 3) {
+            let randomItem = allItems[Math.floor(Math.random() * allItems.length)];
+            if(!options.find(i => i.id === randomItem.id)) options.push(randomItem);
+        }
+        options.sort(() => Math.random() - 0.5); // Barajar opciones
+
+        const optionsContainer = document.getElementById('quiz-options');
+        optionsContainer.innerHTML = '';
+        
+        options.forEach(opt => {
+            const img = document.createElement('img');
+            img.src = opt.img;
+            img.className = 'img-card';
+            img.onclick = () => checkAnswer(opt.id);
+            optionsContainer.appendChild(img);
+        });
+
+        repeatQuizSound();
+    }
+
+    function repeatQuizSound() {
+        if(currentQuizItem) speak("¿Dónde está... " + currentQuizItem.id + "?");
+    }
+
+    function checkAnswer(selectedId) {
+        const feedback = document.getElementById('quiz-feedback');
+        if(selectedId === currentQuizItem.id) {
+            feedback.style.color = "green";
+            feedback.innerText = "¡Excelente! 🌟";
+            speak("¡Muy bien! ¡Correcto!");
+            setTimeout(startQuiz, 2000);
+        } else {
+            feedback.style.color = "red";
+            feedback.innerText = "¡Inténtalo de nuevo! 💪";
+            speak("Oh oh, intenta otra vez.");
+        }
+    }
+
+    // MOTOR DE VOZ
+    function speak(text) {
+        const synth = window.speechSynthesis;
+        synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'es-ES';
+        utter.rate = 0.9;
+        synth.speak(utter);
+    }
+</script>
+
+</body>
+</html>
